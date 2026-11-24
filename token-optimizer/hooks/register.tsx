@@ -127,6 +127,7 @@ function ring(pct: number): string {
 // Cartão único por cima da caixa de escrever: Ember, estado, métricas, poupança e botões.
 async function drawBand($: EngineInterface, ui: Ui) {
   const { Box, Button, Text } = ui
+  const Svg = 'Svg' in ui ? ui.Svg : undefined
   const u = await read($, usage)
   const comp = await read($, compactions)
   const last = await read($, lastRequestAt)
@@ -136,6 +137,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
   const saved = await read($, savedChars)
   const trimmed = await read($, trimmedCount)
   const m = await read($, mood)
+  const f = await read($, buddyFrame)
 
   const ctx = u.contextPercent ?? 0
   const q = quality(ctx, comp)
@@ -156,7 +158,11 @@ async function drawBand($: EngineInterface, ui: Ui) {
   return (
     <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
       <Box marginRight={1}>
-        <Text color="#e8835f" bold>{m === 'error' ? '▛✕✕▜' : m === 'done' ? '▛^^▜' : '▛▪▪▜'}</Text>
+        {Svg ? (
+          <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} isInteractive />
+        ) : (
+          <Text color="#e8835f" bold>{m === 'error' ? '▛✕✕▜' : m === 'done' ? '▛^^▜' : '▛▪▪▜'}</Text>
+        )}
       </Box>
       <Box flexDirection="column" flexGrow={1}>
         <Box>
