@@ -110,8 +110,11 @@ async function finishHandoff($: EngineInterface) {
   await update($, compactions, () => 0)
   await update($, lastRequestAt, () => null)
   await $.command.run({ command: 'clear' })
-  await $.prompt.fill({ text: RESUME_PROMPT })
-  $.ui.toast('▓ TOKEN//OPT ▓ sessão limpa // carrega Enter para continuar')
+  $.ui.toast('▓ TOKEN//OPT ▓ conversa limpa // a continuar a partir do HANDOFF.md')
+  // Espera a limpeza assentar e continua sozinho.
+  $.clock.after(1_200, () => {
+    void $.prompt.submit({ text: RESUME_PROMPT })
+  })
 }
 
 type Ui = ReturnType<EngineInterface['ui']['resolve']>
@@ -196,7 +199,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
         <Button
           key="fresh"
           hotkey="f"
-          label={confirming ? 'Confirmar?' : 'Start fresh'}
+          label={confirming ? 'Confirmar?' : '⟳ Resumir e recomeçar'}
           onPress={async () => {
             if (await read($, handoffPending)) return
             if (!(await read($, isConfirming))) {
@@ -275,7 +278,7 @@ async function drawPanel($: EngineInterface, ui: Ui) {
         <Button
           key="fresh"
           hotkey="f"
-          label={confirming ? '⚠ CONFIRMAR' : '⟳ RESUMIR+RECOMEÇAR'}
+          label={confirming ? '⚠ CONFIRMAR' : '⟳ RESUMIR E RECOMEÇAR'}
           onPress={async () => {
             if (await read($, handoffPending)) return
             if (!(await read($, isConfirming))) {
@@ -393,7 +396,7 @@ export const register: Register = on => {
     const ctx = u.contextPercent ?? 0
     if (!hasWarned && (ctx >= 70 || comp >= 1)) {
       hasWarned = true
-      $.ui.toast('▓ TOKEN//OPT ▓ contexto pesado // usa "RESUMIR+RECOMEÇAR" para poupar', { timeoutMs: 8_000 })
+      $.ui.toast('▓ TOKEN//OPT ▓ contexto pesado // usa "Resumir e recomeçar" para poupar', { timeoutMs: 8_000 })
     }
     if (ctx < 40 && comp === 0) hasWarned = false
     return result
