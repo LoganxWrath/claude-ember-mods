@@ -1,1 +1,1 @@
-{ "name": "token-optimizer", "version": "0.3.2", "description": "Painel acima do prompt com contexto, compactações, cache e limite semanal, e um botão para começar de novo", "types": "./types/index.d.ts" }
+{ "name": "token-optimizer", "version": "0.3.3", "description": "Painel acima do prompt com contexto, compactações, cache e limite semanal, e um botão para começar de novo", "types": "./types/index.d.ts" }
