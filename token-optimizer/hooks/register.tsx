@@ -314,7 +314,7 @@ export const register: Register = on => {
     // Anima o Ember: uma pose nova ~3 vezes por segundo.
     buddyTick?.cancel()
     buddyTick = $.clock.every(350, () => {
-      void update($, buddyFrame, f => (f + 1) % 840)
+      void update($, buddyFrame, f => (f + 1) % 840).then(() => $.ui.invalidate('ui.render'))
     })
     return next(e)
   })
