@@ -10,8 +10,8 @@ Dois mods para o Claude Code:
 Num terminal com o Claude Code:
 
 ```
-/plugin install token-optimizer --marketplace <a-tua-conta>/claude-ember-mods
-/plugin install neon-grid --marketplace <a-tua-conta>/claude-ember-mods
+/plugin install token-optimizer --marketplace LoganxWrath/claude-ember-mods
+/plugin install neon-grid --marketplace LoganxWrath/claude-ember-mods
 ```
 
 Responde `y` para adicionar o marketplace e escolhe o âmbito **user** para ficar ativo em todas as sessões.
@@ -19,10 +19,10 @@ Responde `y` para adicionar o marketplace e escolhe o âmbito **user** para fica
 Ou, a partir de uma shell:
 
 ```
-claude plugin install token-optimizer --marketplace <a-tua-conta>/claude-ember-mods
-claude plugin install neon-grid --marketplace <a-tua-conta>/claude-ember-mods
+claude plugin install token-optimizer --marketplace LoganxWrath/claude-ember-mods
+claude plugin install neon-grid --marketplace LoganxWrath/claude-ember-mods
 ```
 
-Na app desktop: carrega em **+** ao lado da caixa de escrever → **Plugins** → **Add marketplace** com `<a-tua-conta>/claude-ember-mods` → **Add plugin**.
+Na app desktop: carrega em **+** ao lado da caixa de escrever → **Plugins** → **Add marketplace** com `LoganxWrath/claude-ember-mods` → **Add plugin**.
 
 Como o repositório é privado, o computador precisa de ter credenciais do GitHub (por exemplo `gh auth login` seguido de `gh auth setup-git`).
