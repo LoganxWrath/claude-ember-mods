@@ -116,6 +116,81 @@ async function finishHandoff($: EngineInterface) {
 
 type Ui = ReturnType<EngineInterface['ui']['resolve']>
 
+function ring(pct: number): string {
+  return pct >= 88 ? '●' : pct >= 63 ? '◕' : pct >= 38 ? '◑' : pct >= 13 ? '◔' : '○'
+}
+
+// Cartão compacto por cima da caixa de escrever: Ember à esquerda, estado, métricas, botão.
+async function drawBand($: EngineInterface, ui: Ui) {
+  const { Box, Button, Text } = ui
+  const Svg = 'Svg' in ui ? ui.Svg : undefined
+  const u = await read($, usage)
+  const comp = await read($, compactions)
+  const last = await read($, lastRequestAt)
+  const t = (await read($, now)) || Date.now()
+  const confirming = await read($, isConfirming)
+  const pending = await read($, handoffPending)
+  const m = await read($, mood)
+
+  const ctx = u.contextPercent ?? 0
+  const q = quality(ctx, comp)
+  const g = grade(q)
+  const cacheLeftMin = last === null ? null : Math.max(0, Math.round((last + CACHE_TTL_MS - t) / 60_000))
+  const cachePct = cacheLeftMin === null ? 100 : Math.round((cacheLeftMin / 60) * 100)
+  const isBad = comp >= 3 || ctx >= 80
+  const isWarn = comp >= 1 || ctx >= 60
+  const status = pending
+    ? 'a escrever o handoff…'
+    : comp > 0
+      ? `Compactado ${comp}x. ${comp >= 3 ? 'O detalhe inicial já se perdeu quase todo.' : 'Algum detalhe inicial perdeu-se.'}`
+      : advice(ctx, comp, cacheLeftMin).replace(' // ', ': ')
+
+  return (
+    <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#3a2a1c'} paddingX={1}>
+      {Svg ? (
+        <Box marginRight={1}>
+          <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} />
+        </Box>
+      ) : (
+        <Text color="#e8835f">▟█▙ </Text>
+      )}
+      <Box flexDirection="column" flexGrow={1}>
+        <Box>
+          <Text bold>Token Optimizer </Text>
+          <Text color={isBad ? NEON_PINK : isWarn ? NEON_YELLOW : NEON_GREEN}>{isBad || isWarn ? '⧗ ' : ''}</Text>
+          <Text dimColor>{status}</Text>
+        </Box>
+        <Box>
+          <Text backgroundColor={tone(q >= 65, q >= 35)} color="#0a0806" bold> {g} </Text>
+          <Text> {q} </Text><Text dimColor>qualidade   </Text>
+          <Text color={tone(ctx < 60, ctx < 80)}>{ring(ctx)} </Text>
+          <Text>{u.contextPercent === null ? '--' : ctx + '%'} </Text><Text dimColor>contexto   </Text>
+          <Text color={cacheLeftMin === null ? DIM : tone(cacheLeftMin > 15, cacheLeftMin > 0)}>{ring(cachePct)} </Text>
+          <Text>{cacheLeftMin === null ? '--' : cacheLeftMin + 'm'} </Text><Text dimColor>cache   </Text>
+          <Text color={u.weekPercent === null ? DIM : tone(u.weekPercent < 60, u.weekPercent < 85)}>{ring(u.weekPercent ?? 0)} </Text>
+          <Text>{u.weekPercent === null ? '--' : u.weekPercent + '%'} </Text><Text dimColor>semana</Text>
+        </Box>
+      </Box>
+      <Button
+        key="fresh"
+        hotkey="f"
+        label={confirming ? 'Confirmar' : 'Start fresh'}
+        onPress={async () => {
+          if (await read($, handoffPending)) return
+          if (!(await read($, isConfirming))) {
+            await update($, isConfirming, () => true)
+            $.clock.after(8_000, () => {
+              void update($, isConfirming, () => false)
+            })
+            return
+          }
+          await startHandoff($)
+        }}
+      />
+    </Box>
+  )
+}
+
 async function drawPanel($: EngineInterface, ui: Ui) {
   const { Box, Button, Text } = ui
   const u = await read($, usage)
@@ -304,7 +379,7 @@ export const register: Register = on => {
     if (e.props.hasSurvey || (await read($, isHidden))) {
       return next(e)
     }
-    return drawPanel($, $.ui.resolve(e))
+    return drawBand($, $.ui.resolve(e))
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
