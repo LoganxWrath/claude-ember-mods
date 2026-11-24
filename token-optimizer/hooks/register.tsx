@@ -288,8 +288,6 @@ async function drawPanel($: EngineInterface, ui: Ui) {
             await startHandoff($)
           }}
         />
-        <Text> </Text>
-        <Button key="hide" label="✕" onPress={() => update($, isHidden, () => true)} />
       </Box>
     </Box>
   )
@@ -300,6 +298,7 @@ export const register: Register = on => {
   let hasWarned = false
 
   on('session.start', async ($, e, next) => {
+    await update($, isHidden, () => false)
     await $.command.register({ name: 'tokens', description: 'Abre o painel Token Optimizer ao lado da conversa' })
     void $.ui.open({ id: PANE, title: 'TOKEN//OPTIMIZER' })
     await refresh($)
