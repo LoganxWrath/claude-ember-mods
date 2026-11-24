@@ -159,7 +159,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
     <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
       <Box marginRight={1}>
         {Svg ? (
-          <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} isInteractive />
+          <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} />
         ) : (
           <Text color="#e8835f" bold>{m === 'error' ? '▛✕✕▜' : m === 'done' ? '▛^^▜' : '▛▪▪▜'}</Text>
         )}
