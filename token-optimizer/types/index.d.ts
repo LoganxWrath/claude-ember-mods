@@ -1,3 +1,5 @@
+export type Mood = 'idle' | 'thinking' | 'terminal' | 'building' | 'reading' | 'searching' | 'error' | 'done' | 'compacting'
+
 export type Usage = {
   contextPercent: number | null
   fiveHourPercent: number | null
@@ -17,6 +19,7 @@ declare module 'claude-code' {
       handoffPending: boolean
       savedChars: number
       trimmedCount: number
+      mood: Mood
     }
   }
 }

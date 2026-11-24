@@ -1,7 +1,8 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Usage } from '../types'
+import type { Mood, Usage } from '../types'
+import { MOOD_LABEL, buddySvg, moodForTool } from './buddy'
 
 // ── Paleta cyberpunk ────────────────────────────────────────────────
 const NEON_PINK = '#ff3355'
@@ -39,6 +40,7 @@ const isConfirming = atom({ plugin: 'token-optimizer', key: 'isConfirming' } as 
 const isHidden = atom({ plugin: 'token-optimizer', key: 'isHidden' } as const, false)
 const handoffPending = atom({ plugin: 'token-optimizer', key: 'handoffPending' } as const, false)
 const savedChars = atom({ plugin: 'token-optimizer', key: 'savedChars' } as const, 0)
+const mood = atom({ plugin: 'token-optimizer', key: 'mood' } as const, 'idle' as Mood)
 const trimmedCount = atom({ plugin: 'token-optimizer', key: 'trimmedCount' } as const, 0)
 
 // Heurística: contexto cheio e cada compactação baixam a qualidade.
@@ -199,6 +201,7 @@ export const register: Register = on => {
 
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'tokens', description: 'Abre o painel Token Optimizer ao lado da conversa' })
+    void $.ui.open({ id: PANE, title: 'TOKEN//OPTIMIZER' })
     await refresh($)
     tick?.cancel()
     tick = $.clock.every(60_000, () => {
@@ -218,7 +221,9 @@ export const register: Register = on => {
   })
 
   on('session.compact', async ($, e, next) => {
+    if (e.agentId === undefined && e.trigger !== 'precompute') await update($, mood, () => 'compacting')
     const result = await next(e)
+    if (e.agentId === undefined && e.trigger !== 'precompute') await update($, mood, () => 'thinking')
     if (e.agentId === undefined && e.trigger !== 'precompute' && !('skip' in result && result.skip)) {
       await update($, compactions, n => n + 1)
     }
@@ -254,7 +259,23 @@ export const register: Register = on => {
     }
   }).catch(($, e, next) => next(e))
 
+  on('prompt.submit', async ($, e, next) => {
+    await update($, mood, () => 'thinking')
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
+  on('tool.call', async ($, e, next) => {
+    if (e.agentId === undefined) await update($, mood, () => moodForTool(e.tool))
+    const ran = await next(e)
+    if (e.agentId === undefined) await update($, mood, () => (ran.isError === true ? 'error' : 'thinking'))
+    return ran
+  }).catch(($, e, next) => next(e))
+
   on('turn.complete', async ($, e, next) => {
+    await update($, mood, () => 'done')
+    $.clock.after(5_000, () => {
+      void update($, mood, m => (m === 'done' ? 'idle' : m))
+    })
     const result = await next(e)
     const t = await $.clock.now()
     await update($, lastRequestAt, () => t)
@@ -287,7 +308,21 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    return drawPanel($, $.ui.resolve(e))
+    const ui = $.ui.resolve(e)
+    const { Box, Text } = ui
+    const m = await read($, mood)
+    const Svg = 'Svg' in ui ? ui.Svg : undefined
+    return (
+      <Box flexDirection="column">
+        {Svg ? (
+          <Box flexDirection="column" alignItems="center">
+            <Svg source={buddySvg(m)} alt={'Ember, o robô: ' + MOOD_LABEL[m]} width={128} height={128} />
+            <Text color="#ff7a00" bold>EMBER // {MOOD_LABEL[m]}</Text>
+          </Box>
+        ) : null}
+        {await drawPanel($, ui)}
+      </Box>
+    )
   })
 
   on('command.run', { command: 'tokens' }, async $ => {
