@@ -172,8 +172,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
         </Box>
       </Box>
       <Button
-        key="fresh"
-        hotkey="f"
+        key="fresh-card"
         label={confirming ? 'Confirmar' : 'Start fresh'}
         onPress={async () => {
           if (await read($, handoffPending)) return
@@ -379,7 +378,14 @@ export const register: Register = on => {
     if (e.props.hasSurvey || (await read($, isHidden))) {
       return next(e)
     }
-    return drawBand($, $.ui.resolve(e))
+    const ui = $.ui.resolve(e)
+    const { Box } = ui
+    return (
+      <Box flexDirection="column">
+        {await drawBand($, ui)}
+        {await drawPanel($, ui)}
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
