@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { Mood, Usage } from '../types'
-import { MOOD_LABEL, buddyPixels, buddySvg, moodForTool } from './buddy'
+import { MOOD_LABEL, buddyChip, buddySvg, moodForTool } from './buddy'
 
 // ── Paleta cyberpunk ────────────────────────────────────────────────
 const NEON_PINK = '#ff3355'
@@ -157,15 +157,11 @@ async function drawBand($: EngineInterface, ui: Ui) {
   return (
     <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
       <Box marginRight={1}>
-        <Box flexDirection="column">
-          {buddyPixels(m, f).map(line => (
-            <Text>
-              {line.map(seg => (
-                <Text color={seg.color} backgroundColor={seg.bg}>{seg.text}</Text>
-              ))}
-            </Text>
+        <Text bold>
+          {buddyChip(m, f).map(seg => (
+            <Text color={seg.color} backgroundColor={seg.bg}>{seg.text}</Text>
           ))}
-        </Box>
+        </Text>
       </Box>
       <Box flexDirection="column" flexGrow={1}>
         <Box>

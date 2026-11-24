@@ -291,3 +291,33 @@ export function buddyPixels(mood: Mood, frame: number): PixelSeg[][] {
   }
   return lines
 }
+
+// Carinha numa só linha (sem espaços entre linhas): fundo coral com olhos.
+export function buddyChip(mood: Mood, frame: number): PixelSeg[] {
+  const fast = mood === 'terminal' || mood === 'building' || mood === 'error'
+  const blink = !fast && mood !== 'done' && frame % 12 === 0
+  const eye =
+    mood === 'error' ? '×' : mood === 'done' ? '^' : blink ? '-' : mood === 'reading' ? (frame % 4 < 2 ? '◂' : '▸') : '●'
+  const eyeColor = mood === 'error' ? '#ff3355' : DARK
+  const ear = mood === 'thinking' && frame % 2 === 0 ? CYAN : CORAL
+  const lead = mood === 'error' ? (frame % 2 ? ' ' : '') : mood === 'idle' ? (Math.floor(frame / 3) % 2 ? ' ' : '') : frame % 2 && fast ? ' ' : ''
+  const segs: PixelSeg[] = []
+  if (lead) segs.push({ text: lead })
+  segs.push({ text: '▐', color: ear })
+  segs.push({ text: ' ', bg: CORAL })
+  segs.push({ text: eye, color: eyeColor, bg: CORAL })
+  segs.push({ text: mood === 'done' ? '‿' : ' ', color: DARK, bg: CORAL })
+  segs.push({ text: eye, color: eyeColor, bg: CORAL })
+  segs.push({ text: ' ', bg: CORAL })
+  segs.push({ text: '▌', color: ear })
+  const extra =
+    mood === 'thinking' ? ['·  ', '·· ', '···', '   '][frame % 4]!
+    : mood === 'terminal' ? ['▮▯▯', '▯▮▯', '▯▯▮', '▯▮▯'][frame % 4]!
+    : mood === 'building' ? (frame % 2 ? '⚒ ' : '✦ ')
+    : mood === 'searching' ? [')  ', ')) ', ')))', '   '][frame % 4]!
+    : mood === 'done' ? (frame % 2 ? '✦ ' : ' ✦')
+    : mood === 'compacting' ? ['▁▂▃', '▂▃▁', '▃▁▂'][frame % 3]!
+    : '   '
+  segs.push({ text: ' ' + extra, color: mood === 'searching' ? CYAN : LIGHT })
+  return segs
+}
