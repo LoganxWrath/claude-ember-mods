@@ -208,3 +208,86 @@ export function buddyText(mood: Mood, frame: number): string {
       return ['▛▪▪▜', '▄▪▪▄', '▁▪▪▁', '▄▪▪▄'][frame % 4]!
   }
 }
+
+// Ember em blocos de cor (meio-bloco = 2 píxeis por célula), para sítios sem imagens.
+// Devolve linhas de texto; cada segmento tem caráter, cor e fundo.
+export type PixelSeg = { text: string; color?: string; bg?: string }
+
+const SPRITE = [
+  '.CC....CC.',
+  'CCCCCCCCCC',
+  'CCKCCCCKCC',
+  'CCKCCCCKCC',
+  'CPCCCCCCPC',
+  'CCCCCCCCCC',
+  '.CC....CC.',
+  '.CC....CC.',
+]
+
+export function buddyPixels(mood: Mood, frame: number): PixelSeg[][] {
+  const W = 14
+  const H = 10
+  const grid: (string | null)[][] = Array.from({ length: H }, () => Array<string | null>(W).fill(null))
+  const bobs = mood === 'done' ? [2, 0, 0, 1] : [2, 1, 1, 2]
+  const fast = mood === 'terminal' || mood === 'building' || mood === 'done' || mood === 'error'
+  const oy = mood === 'idle' ? bobs[Math.floor(frame / 2) % 4]! : bobs[frame % 4]!
+  const ox = 2 + (mood === 'error' ? (frame % 2 ? 1 : -1) : mood === 'reading' ? [0, 0, 1, 1][frame % 4]! - 0 : 0)
+  const blink = !fast && frame % 12 === 0
+  const squash = mood === 'compacting' ? frame % 4 : 0
+  const ear = mood === 'thinking' && frame % 2 === 0 ? CYAN : CORAL
+  const eye = mood === 'error' ? '#ff3355' : DARK
+
+  SPRITE.forEach((row, y) => {
+    if (squash === 2 && y === 1) return
+    const yy = oy + y + (squash === 2 && y > 1 ? -1 : 0)
+    for (let x = 0; x < row.length; x++) {
+      const ch = row[x]!
+      if (ch === '.') continue
+      let c = CORAL
+      if (ch === 'P') c = CHEEK
+      if (ch === 'K') {
+        if (blink || (mood === 'done' && y === 3)) c = CORAL
+        else c = eye
+      }
+      if (y === 0) c = ear
+      const xx = ox + x
+      if (yy >= 0 && yy < H && xx >= 0 && xx < W) grid[yy]![xx] = c
+    }
+  })
+  // bracinhos (sobem e descem quando está a trabalhar)
+  const armY = oy + 3 + (fast && frame % 2 ? -1 : 0)
+  for (const ax of [ox - 1, ox + 10]) if (ax >= 0 && ax < W && armY >= 0 && armY < H) grid[armY]![ax] = CORAL
+  // extras por estado
+  if (mood === 'thinking') for (let i = 0; i < frame % 4; i++) grid[Math.max(0, oy - 1 - i)]![ox + 10 + i < W ? ox + 10 + i : W - 1] = LIGHT
+  if (mood === 'done' && frame % 2 === 0) {
+    grid[0]![0] = LIGHT
+    grid[1]![W - 1] = ORANGE
+  }
+  if (mood === 'searching') {
+    const r = frame % 3
+    for (let y = 2; y < 8; y++) {
+      if (ox - 2 - r >= 0) grid[y]![ox - 2 - r] = y % 2 ? CYAN : null
+      if (ox + 11 + r < W) grid[y]![ox + 11 + r] = y % 2 ? CYAN : null
+    }
+  }
+
+  const lines: PixelSeg[][] = []
+  for (let y = 0; y < H; y += 2) {
+    const segs: PixelSeg[] = []
+    for (let x = 0; x < W; x++) {
+      const top = grid[y]![x]
+      const bot = grid[y + 1]![x]
+      let seg: PixelSeg
+      if (!top && !bot) seg = { text: ' ' }
+      else if (top && bot && top === bot) seg = { text: '█', color: top }
+      else if (top && !bot) seg = { text: '▀', color: top }
+      else if (!top && bot) seg = { text: '▄', color: bot }
+      else seg = { text: '▀', color: top!, bg: bot! }
+      const last = segs[segs.length - 1]
+      if (last && last.color === seg.color && last.bg === seg.bg && (last.text[0] === seg.text)) last.text += seg.text
+      else segs.push(seg)
+    }
+    lines.push(segs)
+  }
+  return lines
+}
