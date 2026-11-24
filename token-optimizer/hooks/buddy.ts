@@ -181,3 +181,30 @@ export function moodForTool(tool: string): Mood {
   if (tool === 'Read' || tool === 'Grep' || tool === 'Glob') return 'reading'
   return 'searching'
 }
+
+// Versão em texto, para sítios que não mostram imagens: uma pose por fotograma.
+export function buddyText(mood: Mood, frame: number): string {
+  const blink = frame % 12 === 0
+  const face = mood === 'error' ? '▛✕✕▜' : mood === 'done' ? '▛^^▜' : blink ? '▛--▜' : '▛▪▪▜'
+  const bob = ['', ' ', '  ', ' '][frame % 4]!
+  switch (mood) {
+    case 'idle':
+      return (['', ' ', '  ', ' '][Math.floor(frame / 2) % 4]!) + face
+    case 'thinking':
+      return bob + face + ' ' + ['·  ', '·· ', '···', '   '][frame % 4]!
+    case 'terminal':
+      return face + ' ' + ['▮▯▯', '▯▮▯', '▯▯▮', '▯▮▯'][frame % 4]!
+    case 'building':
+      return face + (frame % 2 ? ' ⚒' : ' ✦')
+    case 'reading':
+      return face + ['⌕  ', ' ⌕ ', '  ⌕', ' ⌕ '][frame % 4]!
+    case 'searching':
+      return ['(' + face + ')', '((' + face + '))', '(((' + face + ')))', ' ' + face + ' '][frame % 4]!
+    case 'error':
+      return (frame % 2 ? '  ' : '') + face
+    case 'done':
+      return (frame % 2 ? '\\' : '✦') + face + (frame % 2 ? '/' : '✦')
+    case 'compacting':
+      return ['▛▪▪▜', '▄▪▪▄', '▁▪▪▁', '▄▪▪▄'][frame % 4]!
+  }
+}
