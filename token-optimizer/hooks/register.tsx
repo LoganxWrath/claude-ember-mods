@@ -40,6 +40,7 @@ const isConfirming = atom({ plugin: 'token-optimizer', key: 'isConfirming' } as 
 const isHidden = atom({ plugin: 'token-optimizer', key: 'isHidden' } as const, false)
 const handoffPending = atom({ plugin: 'token-optimizer', key: 'handoffPending' } as const, false)
 const savedChars = atom({ plugin: 'token-optimizer', key: 'savedChars' } as const, 0)
+const buddyFrame = atom({ plugin: 'token-optimizer', key: 'buddyFrame' } as const, 0)
 const mood = atom({ plugin: 'token-optimizer', key: 'mood' } as const, 'idle' as Mood)
 const trimmedCount = atom({ plugin: 'token-optimizer', key: 'trimmedCount' } as const, 0)
 
@@ -298,6 +299,7 @@ async function drawPanel($: EngineInterface, ui: Ui) {
 
 export const register: Register = on => {
   let tick: { cancel: () => void } | undefined
+  let buddyTick: { cancel: () => void } | undefined
   let hasWarned = false
 
   on('session.start', async ($, e, next) => {
@@ -308,6 +310,11 @@ export const register: Register = on => {
     tick?.cancel()
     tick = $.clock.every(60_000, () => {
       void update($, now, () => Date.now())
+    })
+    // Anima o Ember: uma pose nova ~3 vezes por segundo.
+    buddyTick?.cancel()
+    buddyTick = $.clock.every(350, () => {
+      void update($, buddyFrame, f => (f + 1) % 840)
     })
     return next(e)
   })
@@ -413,12 +420,13 @@ export const register: Register = on => {
     const ui = $.ui.resolve(e)
     const { Box, Text } = ui
     const m = await read($, mood)
+    const f = await read($, buddyFrame)
     const Svg = 'Svg' in ui ? ui.Svg : undefined
     return (
       <Box flexDirection="column">
         {Svg ? (
           <Box flexDirection="column" alignItems="center">
-            <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={128} height={128} />
+            <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={128} height={128} />
             <Text color="#e8835f" bold>EMBER // {MOOD_LABEL[m]}</Text>
           </Box>
         ) : null}

@@ -20,6 +20,7 @@ declare module 'claude-code' {
       savedChars: number
       trimmedCount: number
       mood: Mood
+      buddyFrame: number
     }
   }
 }
