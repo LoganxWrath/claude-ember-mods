@@ -316,8 +316,8 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {Svg ? (
           <Box flexDirection="column" alignItems="center">
-            <Svg source={buddySvg(m)} alt={'Ember, o robô: ' + MOOD_LABEL[m]} width={128} height={128} />
-            <Text color="#ff7a00" bold>EMBER // {MOOD_LABEL[m]}</Text>
+            <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={128} height={128} />
+            <Text color="#e8835f" bold>EMBER // {MOOD_LABEL[m]}</Text>
           </Box>
         ) : null}
         {await drawPanel($, ui)}

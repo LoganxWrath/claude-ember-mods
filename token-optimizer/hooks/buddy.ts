@@ -1,4 +1,4 @@
-// Ember: um pequeno robô em pixel art que mostra o que o Claude está a fazer.
+// Ember: uma criaturinha em pixel art que mostra o que o Claude está a fazer.
 import type { Mood } from '../types'
 
 export const MOOD_LABEL: Record<Mood, string> = {
@@ -24,31 +24,36 @@ function px(x: number, y: number, w: number, h: number, fill: string, cls = ''):
   return `<rect x="${x * 4}" y="${y * 4}" width="${w * 4}" height="${h * 4}" fill="${fill}"${cls ? ` class="${cls}"` : ''}/>`
 }
 
+const CORAL = '#e8835f'
+const CORAL_LIGHT = '#f4a989'
+
 function body(eyes: string): string {
   return [
-    // antena
-    px(15, 3, 2, 4, ORANGE),
-    px(14, 1, 4, 3, LIGHT, 'tip'),
-    // cabeça/corpo
-    px(8, 7, 16, 14, ORANGE),
-    px(9, 8, 14, 1, LIGHT),
-    // visor
-    px(10, 10, 12, 7, DARK),
+    // orelhas (piscam quando está a pensar)
+    px(9, 5, 3, 3, CORAL, 'tip'),
+    px(20, 5, 3, 3, CORAL, 'tip'),
+    // corpo com cantos em degrau
+    px(9, 7, 14, 1, CORAL),
+    px(8, 8, 16, 12, CORAL),
+    px(7, 9, 1, 10, CORAL),
+    px(24, 9, 1, 10, CORAL),
+    px(9, 8, 6, 1, CORAL_LIGHT),
+    // bochechas
+    px(10, 16, 2, 1, '#ff9f8a'),
+    px(20, 16, 2, 1, '#ff9f8a'),
     eyes,
-    // braços
-    px(5, 12, 3, 6, ORANGE, 'arm-l'),
-    px(24, 12, 3, 6, ORANGE, 'arm-r'),
-    // pernas
-    px(10, 21, 3, 4, ORANGE, 'leg-l'),
-    px(19, 21, 3, 4, ORANGE, 'leg-r'),
-    px(9, 25, 5, 1, DARK),
-    px(18, 25, 5, 1, DARK),
+    // bracinhos
+    px(4, 13, 3, 3, CORAL, 'arm-l'),
+    px(25, 13, 3, 3, CORAL, 'arm-r'),
+    // perninhas
+    px(11, 20, 3, 4, CORAL, 'leg-l'),
+    px(18, 20, 3, 4, CORAL, 'leg-r'),
   ].join('')
 }
 
-const NORMAL_EYES = `<g class="eyes">${px(12, 12, 3, 3, LIGHT)}${px(17, 12, 3, 3, LIGHT)}</g>`
-const X_EYES = `<g>${px(12, 12, 1, 1, RED)}${px(14, 12, 1, 1, RED)}${px(13, 13, 1, 1, RED)}${px(12, 14, 1, 1, RED)}${px(14, 14, 1, 1, RED)}${px(17, 12, 1, 1, RED)}${px(19, 12, 1, 1, RED)}${px(18, 13, 1, 1, RED)}${px(17, 14, 1, 1, RED)}${px(19, 14, 1, 1, RED)}</g>`
-const HAPPY_EYES = `<g>${px(12, 13, 1, 1, LIGHT)}${px(13, 12, 1, 1, LIGHT)}${px(14, 13, 1, 1, LIGHT)}${px(17, 13, 1, 1, LIGHT)}${px(18, 12, 1, 1, LIGHT)}${px(19, 13, 1, 1, LIGHT)}</g>`
+const NORMAL_EYES = `<g class="eyes">${px(12, 11, 2, 4, DARK)}${px(18, 11, 2, 4, DARK)}${px(12, 11, 1, 1, LIGHT)}${px(18, 11, 1, 1, LIGHT)}</g>`
+const X_EYES = `<g>${px(11, 11, 1, 1, DARK)}${px(13, 11, 1, 1, DARK)}${px(12, 12, 1, 1, DARK)}${px(11, 13, 1, 1, DARK)}${px(13, 13, 1, 1, DARK)}${px(18, 11, 1, 1, DARK)}${px(20, 11, 1, 1, DARK)}${px(19, 12, 1, 1, DARK)}${px(18, 13, 1, 1, DARK)}${px(20, 13, 1, 1, DARK)}</g>`
+const HAPPY_EYES = `<g>${px(11, 13, 1, 1, DARK)}${px(12, 12, 1, 1, DARK)}${px(13, 13, 1, 1, DARK)}${px(18, 13, 1, 1, DARK)}${px(19, 12, 1, 1, DARK)}${px(20, 13, 1, 1, DARK)}</g>`
 
 const STYLE = `
 .bot { transform-box: view-box; transform-origin: 64px 100px; }
@@ -58,7 +63,7 @@ const STYLE = `
 @keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }
 .thinking .bot { animation: bob 1.6s ease-in-out infinite; }
 .thinking .tip { animation: glow 0.9s steps(1) infinite; }
-@keyframes glow { 0%, 100% { fill: #ffd29a; } 50% { fill: #02d7f2; } }
+@keyframes glow { 0%, 100% { fill: #e8835f; } 50% { fill: #02d7f2; } }
 .dot { opacity: 0; animation: dot 1.5s steps(1) infinite; }
 .d2 { animation-delay: 0.5s; }
 .d3 { animation-delay: 1s; }
