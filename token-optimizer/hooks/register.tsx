@@ -148,62 +148,58 @@ async function drawBand($: EngineInterface, ui: Ui) {
       ? `Compactado ${comp}x. ${comp >= 3 ? 'O detalhe inicial já se perdeu quase todo.' : 'Algum detalhe inicial perdeu-se.'}`
       : advice(ctx, comp, cacheLeftMin)
 
+  const sep = <Text color="#5a4632">  ·  </Text>
+
   return (
-    <Box flexDirection="row" alignItems="center" borderStyle="double" borderColor={isBad ? NEON_PINK : NEON_PURPLE} paddingX={1}>
+    <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
       {Svg ? (
         <Box marginRight={1}>
-          <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={48} height={48} />
+          <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={44} height={44} />
         </Box>
       ) : null}
       <Box flexDirection="column" flexGrow={1}>
         <Box>
-          <Text color={NEON_PINK} bold>▓▒░ </Text>
-          <Text color={NEON_CYAN} bold>TOKEN</Text>
-          <Text color={NEON_PINK} bold>//</Text>
-          <Text color={NEON_CYAN} bold>OPTIMIZER</Text>
-          <Text color={NEON_PINK} bold> ░▒▓  </Text>
-          <Text color={isBad ? NEON_PINK : isWarn ? NEON_YELLOW : NEON_GREEN}>
-            {isBad || isWarn ? '⧗ ' : '> '}
+          <Text bold color="#ffe9d1">Token Optimizer</Text>
+          <Text color={isBad ? NEON_PINK : isWarn ? NEON_YELLOW : DIM}>
+            {'  '}
+            {isBad || isWarn ? '⧗ ' : ''}
             {status}
           </Text>
         </Box>
         <Box>
           <Text backgroundColor={tone(q >= 65, q >= 35)} color="#0a0806" bold> {g} </Text>
-          <Text> {q} </Text>
-          <Text color={DIM}>qualidade  </Text>
-          <Text color={tone(ctx < 60, ctx < 80)}>
-            {ring(ctx)} {meter(ctx, 8)} {u.contextPercent === null ? '--' : ctx + '%'}
-          </Text>
-          <Text color={DIM}> contexto  </Text>
-          <Text color={cacheLeftMin === null ? DIM : tone(cacheLeftMin > 15, cacheLeftMin > 0)}>
-            {ring(cachePct)} {cacheLeftMin === null ? '--' : cacheLeftMin + 'm'}
-          </Text>
-          <Text color={DIM}> cache  </Text>
+          <Text color="#ffe9d1"> {q}</Text>
+          <Text color={DIM}> qualidade</Text>
+          {sep}
+          <Text color={tone(ctx < 60, ctx < 80)}>{ring(ctx)} </Text>
+          <Text color="#ffe9d1">{u.contextPercent === null ? '--' : ctx + '%'}</Text>
+          <Text color={DIM}> contexto</Text>
+          {sep}
+          <Text color={cacheLeftMin === null ? DIM : tone(cacheLeftMin > 15, cacheLeftMin > 0)}>{ring(cachePct)} </Text>
+          <Text color="#ffe9d1">{cacheLeftMin === null ? '--' : cacheLeftMin + 'm'}</Text>
+          <Text color={DIM}> cache</Text>
+          {sep}
+          <Text color={u.weekPercent === null ? DIM : tone(u.weekPercent < 60, u.weekPercent < 85)}>{ring(u.weekPercent ?? 0)} </Text>
+          <Text color="#ffe9d1">{u.weekPercent === null ? '--' : u.weekPercent + '%'}</Text>
+          <Text color={DIM}> semana</Text>
+          {u.fiveHourPercent !== null ? sep : null}
           {u.fiveHourPercent !== null ? (
-            <Text color={tone(u.fiveHourPercent < 60, u.fiveHourPercent < 85)}>
-              {ring(u.fiveHourPercent)} {u.fiveHourPercent}%
-            </Text>
+            <Text color={tone(u.fiveHourPercent < 60, u.fiveHourPercent < 85)}>{ring(u.fiveHourPercent)} </Text>
           ) : null}
-          {u.fiveHourPercent !== null ? <Text color={DIM}> 5h  </Text> : null}
-          <Text color={u.weekPercent === null ? DIM : tone(u.weekPercent < 60, u.weekPercent < 85)}>
-            {ring(u.weekPercent ?? 0)} {u.weekPercent === null ? '--' : u.weekPercent + '%'}
-          </Text>
-          <Text color={DIM}> semana  </Text>
-          <Text color={tone(comp === 0, comp < 3)}>{comp}x</Text>
-          <Text color={DIM}> compactado</Text>
+          {u.fiveHourPercent !== null ? <Text color="#ffe9d1">{u.fiveHourPercent}%</Text> : null}
+          {u.fiveHourPercent !== null ? <Text color={DIM}> 5h</Text> : null}
         </Box>
         <Box>
-          <Text color={NEON_CYAN}>
-            ✂ {trimmed} saídas cortadas // ~{savedK}k tokens poupados
+          <Text color={DIM}>
+            {MOOD_LABEL[m]} · ✂ {trimmed} saídas cortadas · ~{savedK}k tokens poupados{comp > 0 ? ` · ${comp}x compactado` : ''}
           </Text>
-          <Text color={DIM}>   EMBER // {MOOD_LABEL[m]}</Text>
         </Box>
       </Box>
-      <Box flexDirection="column" alignItems="flex-end">
+      <Box marginLeft={1}>
         <Button
           key="fresh"
           hotkey="f"
-          label={confirming ? '⚠ Confirmar' : '⟳ Start fresh'}
+          label={confirming ? 'Confirmar?' : 'Start fresh'}
           onPress={async () => {
             if (await read($, handoffPending)) return
             if (!(await read($, isConfirming))) {
@@ -216,6 +212,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
             await startHandoff($)
           }}
         />
+        <Text> </Text>
         <Button key="hide" label="✕" onPress={() => update($, isHidden, () => true)} />
       </Box>
     </Box>
