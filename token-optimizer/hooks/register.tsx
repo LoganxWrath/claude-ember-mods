@@ -120,7 +120,7 @@ function ring(pct: number): string {
   return pct >= 88 ? '●' : pct >= 63 ? '◕' : pct >= 38 ? '◑' : pct >= 13 ? '◔' : '○'
 }
 
-// Cartão compacto por cima da caixa de escrever: Ember à esquerda, estado, métricas, botão.
+// Cartão único por cima da caixa de escrever: Ember, estado, métricas, poupança e botões.
 async function drawBand($: EngineInterface, ui: Ui) {
   const { Box, Button, Text } = ui
   const Svg = 'Svg' in ui ? ui.Svg : undefined
@@ -130,6 +130,8 @@ async function drawBand($: EngineInterface, ui: Ui) {
   const t = (await read($, now)) || Date.now()
   const confirming = await read($, isConfirming)
   const pending = await read($, handoffPending)
+  const saved = await read($, savedChars)
+  const trimmed = await read($, trimmedCount)
   const m = await read($, mood)
 
   const ctx = u.contextPercent ?? 0
@@ -139,53 +141,83 @@ async function drawBand($: EngineInterface, ui: Ui) {
   const cachePct = cacheLeftMin === null ? 100 : Math.round((cacheLeftMin / 60) * 100)
   const isBad = comp >= 3 || ctx >= 80
   const isWarn = comp >= 1 || ctx >= 60
+  const savedK = Math.round(saved / 4 / 100) / 10
   const status = pending
-    ? 'a escrever o handoff…'
+    ? '⟳ a escrever o handoff…'
     : comp > 0
       ? `Compactado ${comp}x. ${comp >= 3 ? 'O detalhe inicial já se perdeu quase todo.' : 'Algum detalhe inicial perdeu-se.'}`
-      : advice(ctx, comp, cacheLeftMin).replace(' // ', ': ')
+      : advice(ctx, comp, cacheLeftMin)
 
   return (
-    <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#3a2a1c'} paddingX={1}>
+    <Box flexDirection="row" alignItems="center" borderStyle="double" borderColor={isBad ? NEON_PINK : NEON_PURPLE} paddingX={1}>
       {Svg ? (
         <Box marginRight={1}>
-          <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} />
+          <Svg source={buddySvg(m)} alt={'Ember: ' + MOOD_LABEL[m]} width={48} height={48} />
         </Box>
-      ) : (
-        <Text color="#e8835f">▟█▙ </Text>
-      )}
+      ) : null}
       <Box flexDirection="column" flexGrow={1}>
         <Box>
-          <Text bold>Token Optimizer </Text>
-          <Text color={isBad ? NEON_PINK : isWarn ? NEON_YELLOW : NEON_GREEN}>{isBad || isWarn ? '⧗ ' : ''}</Text>
-          <Text dimColor>{status}</Text>
+          <Text color={NEON_PINK} bold>▓▒░ </Text>
+          <Text color={NEON_CYAN} bold>TOKEN</Text>
+          <Text color={NEON_PINK} bold>//</Text>
+          <Text color={NEON_CYAN} bold>OPTIMIZER</Text>
+          <Text color={NEON_PINK} bold> ░▒▓  </Text>
+          <Text color={isBad ? NEON_PINK : isWarn ? NEON_YELLOW : NEON_GREEN}>
+            {isBad || isWarn ? '⧗ ' : '> '}
+            {status}
+          </Text>
         </Box>
         <Box>
           <Text backgroundColor={tone(q >= 65, q >= 35)} color="#0a0806" bold> {g} </Text>
-          <Text> {q} </Text><Text dimColor>qualidade   </Text>
-          <Text color={tone(ctx < 60, ctx < 80)}>{ring(ctx)} </Text>
-          <Text>{u.contextPercent === null ? '--' : ctx + '%'} </Text><Text dimColor>contexto   </Text>
-          <Text color={cacheLeftMin === null ? DIM : tone(cacheLeftMin > 15, cacheLeftMin > 0)}>{ring(cachePct)} </Text>
-          <Text>{cacheLeftMin === null ? '--' : cacheLeftMin + 'm'} </Text><Text dimColor>cache   </Text>
-          <Text color={u.weekPercent === null ? DIM : tone(u.weekPercent < 60, u.weekPercent < 85)}>{ring(u.weekPercent ?? 0)} </Text>
-          <Text>{u.weekPercent === null ? '--' : u.weekPercent + '%'} </Text><Text dimColor>semana</Text>
+          <Text> {q} </Text>
+          <Text color={DIM}>qualidade  </Text>
+          <Text color={tone(ctx < 60, ctx < 80)}>
+            {ring(ctx)} {meter(ctx, 8)} {u.contextPercent === null ? '--' : ctx + '%'}
+          </Text>
+          <Text color={DIM}> contexto  </Text>
+          <Text color={cacheLeftMin === null ? DIM : tone(cacheLeftMin > 15, cacheLeftMin > 0)}>
+            {ring(cachePct)} {cacheLeftMin === null ? '--' : cacheLeftMin + 'm'}
+          </Text>
+          <Text color={DIM}> cache  </Text>
+          {u.fiveHourPercent !== null ? (
+            <Text color={tone(u.fiveHourPercent < 60, u.fiveHourPercent < 85)}>
+              {ring(u.fiveHourPercent)} {u.fiveHourPercent}%
+            </Text>
+          ) : null}
+          {u.fiveHourPercent !== null ? <Text color={DIM}> 5h  </Text> : null}
+          <Text color={u.weekPercent === null ? DIM : tone(u.weekPercent < 60, u.weekPercent < 85)}>
+            {ring(u.weekPercent ?? 0)} {u.weekPercent === null ? '--' : u.weekPercent + '%'}
+          </Text>
+          <Text color={DIM}> semana  </Text>
+          <Text color={tone(comp === 0, comp < 3)}>{comp}x</Text>
+          <Text color={DIM}> compactado</Text>
+        </Box>
+        <Box>
+          <Text color={NEON_CYAN}>
+            ✂ {trimmed} saídas cortadas // ~{savedK}k tokens poupados
+          </Text>
+          <Text color={DIM}>   EMBER // {MOOD_LABEL[m]}</Text>
         </Box>
       </Box>
-      <Button
-        key="fresh-card"
-        label={confirming ? 'Confirmar' : 'Start fresh'}
-        onPress={async () => {
-          if (await read($, handoffPending)) return
-          if (!(await read($, isConfirming))) {
-            await update($, isConfirming, () => true)
-            $.clock.after(8_000, () => {
-              void update($, isConfirming, () => false)
-            })
-            return
-          }
-          await startHandoff($)
-        }}
-      />
+      <Box flexDirection="column" alignItems="flex-end">
+        <Button
+          key="fresh"
+          hotkey="f"
+          label={confirming ? '⚠ Confirmar' : '⟳ Start fresh'}
+          onPress={async () => {
+            if (await read($, handoffPending)) return
+            if (!(await read($, isConfirming))) {
+              await update($, isConfirming, () => true)
+              $.clock.after(8_000, () => {
+                void update($, isConfirming, () => false)
+              })
+              return
+            }
+            await startHandoff($)
+          }}
+        />
+        <Button key="hide" label="✕" onPress={() => update($, isHidden, () => true)} />
+      </Box>
     </Box>
   )
 }
@@ -378,14 +410,7 @@ export const register: Register = on => {
     if (e.props.hasSurvey || (await read($, isHidden))) {
       return next(e)
     }
-    const ui = $.ui.resolve(e)
-    const { Box } = ui
-    return (
-      <Box flexDirection="column">
-        {await drawBand($, ui)}
-        {await drawPanel($, ui)}
-      </Box>
-    )
+    return drawBand($, $.ui.resolve(e))
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
