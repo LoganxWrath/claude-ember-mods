@@ -156,8 +156,8 @@ async function drawBand($: EngineInterface, ui: Ui) {
 
   return (
     <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
-      <Box marginRight={1}>
-        <Text bold>
+      <Box marginRight={1} flexShrink={0} minWidth={12}>
+        <Text bold wrap="truncate">
           {buddyChip(m, f).map(seg => (
             <Text color={seg.color} backgroundColor={seg.bg}>{seg.text}</Text>
           ))}
@@ -305,6 +305,7 @@ async function drawPanel($: EngineInterface, ui: Ui) {
 export const register: Register = on => {
   let tick: { cancel: () => void } | undefined
   let buddyTick: { cancel: () => void } | undefined
+  let ticks = 0
   let hasWarned = false
 
   on('session.start', async ($, e, next) => {
@@ -319,6 +320,7 @@ export const register: Register = on => {
     // Anima o Ember: uma pose nova ~3 vezes por segundo.
     buddyTick?.cancel()
     buddyTick = $.clock.every(350, () => {
+      ticks += 1
       void update($, buddyFrame, f => (f + 1) % 840).then(() => $.ui.invalidate('ui.render'))
     })
     return next(e)
@@ -443,6 +445,11 @@ export const register: Register = on => {
   on('command.run', { command: 'tokens' }, async $ => {
     await update($, isHidden, () => false)
     const { isPlaced } = await $.ui.open({ id: PANE, title: 'TOKEN//OPTIMIZER' })
-    return { text: isPlaced ? 'Painel de tokens aberto.' : 'Painel de tokens pedido (esta superfície pode não mostrar painéis laterais).' }
+    const fr = await read($, buddyFrame)
+    return {
+      text:
+        (isPlaced ? 'Painel de tokens aberto.' : 'Painel de tokens pedido (esta superfície pode não mostrar painéis laterais).') +
+        ` [diagnóstico: temporizador ${ticks} vezes, pose ${fr}]`,
+    }
   })
 }
