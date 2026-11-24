@@ -426,7 +426,7 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {Svg ? (
           <Box flexDirection="column" alignItems="center">
-            <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={128} height={128} />
+            <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={128} height={128} isInteractive />
             <Text color="#e8835f" bold>EMBER // {MOOD_LABEL[m]}</Text>
           </Box>
         ) : null}

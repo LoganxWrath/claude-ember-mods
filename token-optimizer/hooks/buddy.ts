@@ -70,6 +70,25 @@ function critter(mood: Mood, frame: number, armDy: number, lookX: number): strin
   ].join('')
 }
 
+
+// Movimento contínuo para superfícies que correm animações CSS (modo interativo).
+const STYLE = [
+  '.m-idle,.m-thinking,.m-terminal,.m-building,.m-reading,.m-searching,.m-error,.m-done,.m-compacting{transform-box:view-box;transform-origin:64px 96px}',
+  '.m-idle{animation:bob 2.4s ease-in-out infinite}',
+  '.m-thinking{animation:bob 1.2s ease-in-out infinite}',
+  '.m-searching{animation:bob 1.2s ease-in-out infinite}',
+  '.m-terminal,.m-building{animation:bob .4s ease-in-out infinite}',
+  '.m-reading{animation:sway 2s ease-in-out infinite alternate}',
+  '.m-error{animation:shake .3s linear infinite}',
+  '.m-done{animation:jump .8s ease-out infinite}',
+  '.m-compacting{animation:squish 1.2s ease-in-out infinite}',
+  '@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}',
+  '@keyframes sway{from{transform:translateX(-4px)}to{transform:translateX(4px)}}',
+  '@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}',
+  '@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-18px)}}',
+  '@keyframes squish{0%,100%{transform:scale(1,1)}50%{transform:scale(1.2,.7)}}',
+].join('')
+
 const BOB = [0, -1, -2, -1]
 const JUMP = [0, -6, -9, -6, -2, 0]
 
@@ -153,7 +172,7 @@ export function buddySvg(mood: Mood, frame = 0): string {
 
   // Encolher/esticar a partir dos pés (y = 96).
   const t = `translate(${dx * 4 + 64 * (1 - sx)} ${dy * 4 + 96 * (1 - sy)}) scale(${sx} ${sy})`
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">${back}<g transform="${t}">${critter(mood, frame, armDy, lookX)}</g>${front}</svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><style>${STYLE}</style>${back}<g class="m-${mood}"><g transform="${t}">${critter(mood, frame, armDy, lookX)}</g></g>${front}</svg>`
 }
 
 export function moodForTool(tool: string): Mood {
