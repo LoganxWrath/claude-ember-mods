@@ -127,7 +127,6 @@ function ring(pct: number): string {
 // Cartão único por cima da caixa de escrever: Ember, estado, métricas, poupança e botões.
 async function drawBand($: EngineInterface, ui: Ui) {
   const { Box, Button, Text } = ui
-  const Svg = 'Svg' in ui ? ui.Svg : undefined
   const u = await read($, usage)
   const comp = await read($, compactions)
   const last = await read($, lastRequestAt)
@@ -158,11 +157,7 @@ async function drawBand($: EngineInterface, ui: Ui) {
   return (
     <Box flexDirection="row" alignItems="center" borderStyle="round" borderColor={isBad ? NEON_PINK : '#4a3420'} paddingX={1}>
       <Box marginRight={1}>
-        {Svg ? (
-          <Svg source={buddySvg(m, f)} alt={'Ember: ' + MOOD_LABEL[m]} width={40} height={40} />
-        ) : (
-          <Text color="#e8835f" bold>{m === 'error' ? '▛✕✕▜' : m === 'done' ? '▛^^▜' : '▛▪▪▜'}</Text>
-        )}
+        <Text color="#e8835f" bold>{m === 'error' ? '▛✕✕▜' : m === 'done' ? '▛^^▜' : f % 12 === 0 ? '▛--▜' : '▛▪▪▜'}</Text>
       </Box>
       <Box flexDirection="column" flexGrow={1}>
         <Box>
