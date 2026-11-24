@@ -1,0 +1,8 @@
+{
+  "name": "claude-ember-mods",
+  "owner": { "name": "claude-ember-mods" },
+  "plugins": [
+    { "name": "token-optimizer", "source": "./token-optimizer", "description": "Painel de tokens: contexto, cache, limites, corte de saídas grandes e botão Resumir+Recomeçar" },
+    { "name": "neon-grid", "source": "./neon-grid", "description": "Tema cyberpunk preto e laranja (Ember Grid) com fundo animado para a app desktop e telemóvel" }
+  ]
+}
